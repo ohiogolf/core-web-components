@@ -2,6 +2,8 @@
 
 Drop-in web components powered by [core.ohiogolf.org](https://core.ohiogolf.org). Built as a single JS file that any website can load with a `<script>` tag — no framework required.
 
+[**Live demo**](https://ohiogolf.github.io/core-web-components/)
+
 ## Quick start
 
 Add the script and drop in the components. That's it — no configuration needed:

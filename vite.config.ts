@@ -25,7 +25,6 @@ function apiMock(): Plugin {
 
 export default defineConfig({
   plugins: [apiMock()],
-  publicDir: false,
   build: {
     lib: {
       entry: resolve(root, "src/index.ts"),
