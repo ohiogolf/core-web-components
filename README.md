@@ -53,8 +53,15 @@ src/
     api-client.ts                       Fetch wrapper for CRM API endpoints
 scripts/
   generate-ohio-svg.ts                  One-time script: Census TopoJSON -> SVG paths
+fixtures/
+  metros.json                           Mock metros API response (all 88 counties)
+  clubs-search.json                     Mock club search API response
 index.html                              Dev/test page with both components
 ```
+
+## Dev mocking
+
+The dev server mocks the two API endpoints so the components work without a running Rails server. Vite middleware intercepts `/api/metros.json` and `/api/clubs/search.json` and returns fixture data from the `fixtures/` directory. The dev page sets `api-base-url=""` so requests go to the local Vite server instead of production.
 
 ## SVG map data
 
