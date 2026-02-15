@@ -4,10 +4,10 @@ Drop-in web components powered by [core.ohiogolf.org](https://core.ohiogolf.org)
 
 ## Components
 
-- **`<ohio-county-map>`** — Interactive SVG map of Ohio's 88 counties, colored by golf association region. Click a county to search for clubs.
-- **`<club-search-results>`** — Displays paginated club results. Listens for search events from the map (or any other driver).
+- [**`<ohio-county-map>`**](src/components/ohio-county-map/README.md) — Interactive SVG map of Ohio's 88 counties, colored by golf association region. Click a county to search for clubs.
+- [**`<club-search-results>`**](src/components/club-search-results/README.md) — Displays paginated club results. Listens for search events from the map (or any other driver).
 
-The two components communicate via DOM events and are fully independent — either can be used alone.
+The two components communicate via DOM events and are fully independent — either can be used alone. See each component's README for attributes, CSS custom properties, and event details.
 
 ## Getting started
 
