@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:ohiodeflectionassociation.org)",
+      "Bash(git ls-tree:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:)",
+      "Bash(curl:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(python3:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:eric.clst.org)",
+      "Bash(node:*)",
+      "Bash(npm --version:*)",
+      "WebFetch(domain:www.cccarto.com)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:www.ohiogolf.org)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite build:*)",
+      "Bash(timeout 5 npx vite dev:*)"
+    ]
+  }
+}
