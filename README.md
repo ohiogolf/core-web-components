@@ -27,6 +27,7 @@ Open the dev page in your browser. It loads both components side by side with an
 | `bin/test` | Run tests once via Vitest |
 | `npm run build` | Build `dist/ohio-golf-core-components.js` (single IIFE bundle) |
 | `npm run test:watch` | Run tests in watch mode |
+| `npm run generate-svg` | Regenerate county SVG paths from Census data (rarely needed) |
 
 ## Project structure
 
@@ -54,6 +55,12 @@ scripts/
   generate-ohio-svg.ts                  One-time script: Census TopoJSON -> SVG paths
 index.html                              Dev/test page with both components
 ```
+
+## SVG map data
+
+`src/data/ohio-counties.ts` contains pre-computed SVG path strings for all 88 Ohio counties. This file is generated from Census TIGER boundaries (`us-atlas` npm package) and committed to git, so cloning and building works without running the generate script.
+
+If Census boundary data ever updates, regenerate with `npm run generate-svg`. The script projects coordinates with Albers centered on Ohio into an 800x700 viewBox and rounds to 1 decimal place for compact output.
 
 ## How the build works
 
