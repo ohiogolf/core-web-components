@@ -1,0 +1,238 @@
+// @vitest-environment happy-dom
+
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { OhioCountyMap } from "./ohio-county-map";
+import metrosFixture from "../../../fixtures/metros.json";
+
+// Mock the API client to return fixture data without network requests
+vi.mock("../../lib/api-client", () => ({
+  fetchMetros: vi.fn(() => Promise.resolve(metrosFixture)),
+  searchClubs: vi.fn(),
+}));
+
+// Register the custom element once
+if (!customElements.get("ohio-county-map")) {
+  customElements.define("ohio-county-map", OhioCountyMap);
+}
+
+function createMap(attrs: Record<string, string> = {}): OhioCountyMap {
+  const el = document.createElement("ohio-county-map") as OhioCountyMap;
+  for (const [key, val] of Object.entries(attrs)) {
+    el.setAttribute(key, val);
+  }
+  return el;
+}
+
+async function mountMap(attrs: Record<string, string> = {}): Promise<OhioCountyMap> {
+  const el = createMap(attrs);
+  document.body.appendChild(el);
+  // Wait for async load to complete
+  await vi.waitFor(() => {
+    expect(el.getAttribute("data-state")).not.toBe("loading");
+  });
+  return el;
+}
+
+describe("OhioCountyMap", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  describe("loading state", () => {
+    it("sets data-state to loading initially", () => {
+      const el = createMap();
+      document.body.appendChild(el);
+      expect(el.getAttribute("data-state")).toBe("loading");
+    });
+
+    it("renders a spinner while loading", () => {
+      const el = createMap();
+      document.body.appendChild(el);
+      const spinner = el.shadowRoot!.querySelector(".spinner");
+      expect(spinner).not.toBeNull();
+    });
+  });
+
+  describe("ready state", () => {
+    it("sets data-state to ready after loading metros", async () => {
+      const el = await mountMap();
+      expect(el.getAttribute("data-state")).toBe("ready");
+    });
+
+    it("renders 88 county path elements", async () => {
+      const el = await mountMap();
+      const paths = el.shadowRoot!.querySelectorAll("svg path");
+      expect(paths.length).toBe(88);
+    });
+
+    it("sets data-county attribute on each path", async () => {
+      const el = await mountMap();
+      const franklin = el.shadowRoot!.querySelector('[data-county="Franklin"]');
+      expect(franklin).not.toBeNull();
+    });
+
+    it("sets fill color from region", async () => {
+      const el = await mountMap();
+      const franklin = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      // Franklin is in columbus metro → OGA region → #339933
+      expect(franklin.getAttribute("fill")).toBe("#339933");
+    });
+
+    it("sets data-region attribute", async () => {
+      const el = await mountMap();
+      const franklin = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      expect(franklin.getAttribute("data-region")).toBe("oga");
+    });
+
+    it("sets data-metro attribute", async () => {
+      const el = await mountMap();
+      const franklin = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      expect(franklin.getAttribute("data-metro")).toBe("columbus");
+    });
+  });
+
+  describe("accessibility", () => {
+    it("sets role=img and aria-label on the SVG", async () => {
+      const el = await mountMap();
+      const svg = el.shadowRoot!.querySelector("svg")!;
+      expect(svg.getAttribute("role")).toBe("img");
+      expect(svg.getAttribute("aria-label")).toContain("Ohio counties");
+    });
+
+    it("sets role=button and tabindex on county paths", async () => {
+      const el = await mountMap();
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]')!;
+      expect(path.getAttribute("role")).toBe("button");
+      expect(path.getAttribute("tabindex")).toBe("0");
+    });
+
+    it("includes county name and region in aria-label", async () => {
+      const el = await mountMap();
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]')!;
+      expect(path.getAttribute("aria-label")).toBe("Franklin County, Ohio Golf Association");
+    });
+  });
+
+  describe("legend", () => {
+    it("renders all 4 regions", async () => {
+      const el = await mountMap();
+      const items = el.shadowRoot!.querySelectorAll(".legend-item");
+      expect(items.length).toBe(4);
+    });
+
+    it("includes region names", async () => {
+      const el = await mountMap();
+      const legend = el.shadowRoot!.querySelector(".legend")!;
+      expect(legend.textContent).toContain("Northern Ohio Golf Association");
+      expect(legend.textContent).toContain("Ohio Golf Association");
+      expect(legend.textContent).toContain("Greater Cincinnati Golf Assoc.");
+      expect(legend.textContent).toContain("Miami Valley Golf");
+    });
+  });
+
+  describe("click behavior", () => {
+    it("dispatches club-search event on county click", async () => {
+      const el = await mountMap();
+      const handler = vi.fn();
+      el.addEventListener("club-search", handler);
+
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new Event("click"));
+
+      // Wait for debounce
+      await vi.waitFor(() => {
+        expect(handler).toHaveBeenCalledOnce();
+      }, { timeout: 500 });
+
+      const event = handler.mock.calls[0][0] as CustomEvent;
+      expect(event.detail).toEqual({ counties: "Franklin", label: "Franklin County" });
+    });
+
+    it("dispatches county-selected event on county click", async () => {
+      const el = await mountMap();
+      const handler = vi.fn();
+      el.addEventListener("county-selected", handler);
+
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new Event("click"));
+
+      await vi.waitFor(() => {
+        expect(handler).toHaveBeenCalledOnce();
+      }, { timeout: 500 });
+
+      const event = handler.mock.calls[0][0] as CustomEvent;
+      expect(event.detail).toEqual({
+        county: "Franklin",
+        regionId: "oga",
+        regionName: "Ohio Golf Association",
+      });
+    });
+
+    it("adds selected class to clicked county", async () => {
+      const el = await mountMap();
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new Event("click"));
+      expect(path.classList.contains("selected")).toBe(true);
+    });
+
+    it("dispatches club-search with null on deselect", async () => {
+      const el = await mountMap();
+      const handler = vi.fn();
+
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new Event("click"));
+
+      // Wait for first debounce to clear
+      await vi.waitFor(() => {}, { timeout: 400 });
+
+      el.addEventListener("club-search", handler);
+      path.dispatchEvent(new Event("click")); // Click again to deselect
+
+      await vi.waitFor(() => {
+        expect(handler).toHaveBeenCalledOnce();
+      }, { timeout: 500 });
+
+      const event = handler.mock.calls[0][0] as CustomEvent;
+      expect(event.detail).toBeNull();
+    });
+
+    it("removes selected class on deselect", async () => {
+      const el = await mountMap();
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new Event("click"));
+      expect(path.classList.contains("selected")).toBe(true);
+      path.dispatchEvent(new Event("click"));
+      expect(path.classList.contains("selected")).toBe(false);
+    });
+  });
+
+  describe("error state", () => {
+    it("sets data-state to error when fetch fails", async () => {
+      const { fetchMetros } = await import("../../lib/api-client");
+      (fetchMetros as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("Network error"));
+
+      const el = createMap();
+      document.body.appendChild(el);
+
+      await vi.waitFor(() => {
+        expect(el.getAttribute("data-state")).toBe("error");
+      });
+    });
+
+    it("renders a retry button on error", async () => {
+      const { fetchMetros } = await import("../../lib/api-client");
+      (fetchMetros as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("Network error"));
+
+      const el = createMap();
+      document.body.appendChild(el);
+
+      await vi.waitFor(() => {
+        expect(el.getAttribute("data-state")).toBe("error");
+      });
+
+      const button = el.shadowRoot!.querySelector("button");
+      expect(button).not.toBeNull();
+      expect(button!.textContent).toContain("Try Again");
+    });
+  });
+});
