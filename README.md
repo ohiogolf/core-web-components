@@ -25,6 +25,7 @@ Open the dev page in your browser. It loads both components side by side with an
 | `bin/setup` | Install dependencies |
 | `bin/dev` | Start Vite dev server at http://localhost:5173 |
 | `bin/test` | Run tests once via Vitest |
+| `bin/ci` | Run type check, tests, and build (same as CI pipeline) |
 | `npm run build` | Build `dist/ohio-golf-core-components.js` (single IIFE bundle) |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run generate-svg` | Regenerate county SVG paths from Census data (rarely needed) |
@@ -36,6 +37,7 @@ bin/
   setup                                 Install dependencies
   dev                                   Start dev server
   test                                  Run tests
+  ci                                    Type check + tests + build
 src/
   index.ts                              Entry point — registers both custom elements
   components/

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Type checking..."
+npx tsc --noEmit
+
+echo "Running tests..."
+npm test
+
+echo "Building..."
+npm run build
