@@ -50,8 +50,7 @@ Triggers a search. The component reads the event's `detail` and fetches matching
 // Trigger a search
 { counties: "Franklin", label: "Franklin County" }
 
-// Clear results (deselect)
-null
+// The map no longer dispatches null — clicking the same county is a no-op
 ```
 
 ## Events dispatched

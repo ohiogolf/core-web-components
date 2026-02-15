@@ -141,14 +141,8 @@ export class OhioCountyMap extends HTMLElement {
       clearTimeout(this.debounceTimer);
     }
 
-    // Deselect if clicking the same county
+    // Ignore if already selected
     if (this.selectedCounty === county) {
-      svg.querySelector(".selected")?.classList.remove("selected");
-      this.selectedCounty = null;
-
-      this.debounceTimer = setTimeout(() => {
-        dispatchClubSearch(this, null);
-      }, 300);
       return;
     }
 

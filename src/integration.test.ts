@@ -68,7 +68,7 @@ describe("Integration: map + results", () => {
     expect(cards.length).toBe(5);
   });
 
-  it("clicking the same county again clears results", async () => {
+  it("clicking the same county again is a no-op", async () => {
     const { map, results } = await mountBoth();
 
     clickCounty(map, "Franklin");
@@ -76,11 +76,10 @@ describe("Integration: map + results", () => {
       expect(results.getAttribute("data-state")).toBe("results");
     }, { timeout: 1000 });
 
-    // Click again to deselect
+    // Click again — should stay selected with results visible
     clickCounty(map, "Franklin");
-    await vi.waitFor(() => {
-      expect(results.getAttribute("data-state")).toBe("empty");
-    }, { timeout: 1000 });
+    await new Promise((r) => setTimeout(r, 500));
+    expect(results.getAttribute("data-state")).toBe("results");
   });
 
   it("clicking a different county triggers a new search", async () => {

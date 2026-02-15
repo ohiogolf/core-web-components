@@ -175,7 +175,7 @@ describe("OhioCountyMap", () => {
       expect(path.classList.contains("selected")).toBe(true);
     });
 
-    it("dispatches club-search with null on deselect", async () => {
+    it("ignores click on already-selected county", async () => {
       const el = await mountMap();
       const handler = vi.fn();
 
@@ -186,23 +186,12 @@ describe("OhioCountyMap", () => {
       await vi.waitFor(() => {}, { timeout: 400 });
 
       el.addEventListener("club-search", handler);
-      path.dispatchEvent(new Event("click")); // Click again to deselect
+      path.dispatchEvent(new Event("click")); // Click again — should no-op
 
-      await vi.waitFor(() => {
-        expect(handler).toHaveBeenCalledOnce();
-      }, { timeout: 500 });
-
-      const event = handler.mock.calls[0][0] as CustomEvent;
-      expect(event.detail).toBeNull();
-    });
-
-    it("removes selected class on deselect", async () => {
-      const el = await mountMap();
-      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
-      path.dispatchEvent(new Event("click"));
+      // Give it time to confirm nothing fires
+      await new Promise((r) => setTimeout(r, 500));
+      expect(handler).not.toHaveBeenCalled();
       expect(path.classList.contains("selected")).toBe(true);
-      path.dispatchEvent(new Event("click"));
-      expect(path.classList.contains("selected")).toBe(false);
     });
   });
 

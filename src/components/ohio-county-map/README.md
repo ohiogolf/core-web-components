@@ -48,8 +48,7 @@ Dispatched when a county is clicked. Bubbles and crosses shadow boundaries (`com
 // Select a county
 { counties: "Franklin", label: "Franklin County" }
 
-// Deselect (click same county again)
-null
+// Clicking the same county again is a no-op; select a different county to switch
 ```
 
 ### `county-selected`
@@ -63,7 +62,7 @@ Dispatched alongside `club-search` when a county is selected. Intended for host 
 ## Behavior
 
 - **Hover:** highlights the hovered county and mutes all others
-- **Click:** selects the county with a gold stroke, dispatches events. Click again to deselect.
+- **Click:** selects the county with a gold stroke, dispatches events. Clicking the same county again is a no-op; select a different county to switch.
 - **Keyboard:** counties are focusable with Tab. Enter or Space to select.
 - **Loading:** shows a spinner while fetching metro data
 - **Error:** shows a retry message if the fetch fails
