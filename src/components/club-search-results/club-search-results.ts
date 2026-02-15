@@ -3,7 +3,7 @@ import { dispatchClubDetail, type ClubSearchDetail } from "../../lib/events";
 import { styles } from "./club-search-results.styles";
 
 export class ClubSearchResults extends HTMLElement {
-  private currentCounties: string | null = null;
+  private currentQuery: { counties?: string; metros?: string } | null = null;
   private currentLabel: string | null = null;
   private currentPage = 1;
   private lastResponse: ClubSearchResponse | null = null;
@@ -40,7 +40,7 @@ export class ClubSearchResults extends HTMLElement {
     const detail = e.detail;
 
     if (!detail) {
-      this.currentCounties = null;
+      this.currentQuery = null;
       this.currentLabel = null;
       this.currentPage = 1;
       this.lastResponse = null;
@@ -49,14 +49,14 @@ export class ClubSearchResults extends HTMLElement {
       return;
     }
 
-    this.currentCounties = detail.counties;
+    this.currentQuery = { counties: detail.counties, metros: detail.metros };
     this.currentLabel = detail.label;
     this.currentPage = 1;
     this.fetchResults();
   }
 
   private async fetchResults() {
-    if (!this.currentCounties) return;
+    if (!this.currentQuery) return;
 
     this.setState("loading");
     this.renderLoading();
@@ -64,7 +64,7 @@ export class ClubSearchResults extends HTMLElement {
     try {
       const response = await searchClubs(
         this.baseUrl,
-        this.currentCounties,
+        this.currentQuery,
         this.currentPage,
         this.pageSize,
       );

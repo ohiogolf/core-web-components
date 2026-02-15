@@ -68,7 +68,7 @@ describe("Integration: map + results", () => {
     expect(cards.length).toBe(5);
   });
 
-  it("clicking the same county again is a no-op", async () => {
+  it("clicking another county in the same region is a no-op", async () => {
     const { map, results } = await mountBoth();
 
     clickCounty(map, "Franklin");
@@ -76,13 +76,13 @@ describe("Integration: map + results", () => {
       expect(results.getAttribute("data-state")).toBe("results");
     }, { timeout: 1000 });
 
-    // Click again — should stay selected with results visible
-    clickCounty(map, "Franklin");
+    // Delaware is also OGA — should be a no-op
+    clickCounty(map, "Delaware");
     await new Promise((r) => setTimeout(r, 500));
     expect(results.getAttribute("data-state")).toBe("results");
   });
 
-  it("clicking a different county triggers a new search", async () => {
+  it("clicking a county in a different region triggers a new search", async () => {
     const { map, results } = await mountBoth();
 
     clickCounty(map, "Franklin");
@@ -93,13 +93,15 @@ describe("Integration: map + results", () => {
     const { searchClubs } = await import("./lib/api-client");
     (searchClubs as ReturnType<typeof vi.fn>).mockClear();
 
+    // Cuyahoga is NOGA — different region
     clickCounty(map, "Cuyahoga");
     await vi.waitFor(() => {
       expect(searchClubs).toHaveBeenCalled();
     }, { timeout: 1000 });
 
     const call = (searchClubs as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(call[1]).toBe("Cuyahoga");
+    // Should send NOGA metros
+    expect(call[1]).toEqual({ metros: "cleveland,toledo" });
   });
 
   it("club-detail event bubbles from results to document", async () => {
@@ -137,10 +139,9 @@ describe("Integration: map + results", () => {
       expect(countySelectedHandler).toHaveBeenCalled();
     }, { timeout: 1000 });
 
-    expect(clubSearchHandler.mock.calls[0][0].detail).toEqual({
-      counties: "Franklin",
-      label: "Franklin County",
-    });
+    const searchDetail = clubSearchHandler.mock.calls[0][0].detail;
+    expect(searchDetail.label).toBe("Ohio Golf Association");
+    expect(searchDetail.metros).toBe("columbus");
     expect(countySelectedHandler.mock.calls[0][0].detail).toEqual({
       county: "Franklin",
       regionId: "oga",

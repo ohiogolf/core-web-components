@@ -47,15 +47,20 @@ export function fetchMetros(baseUrl: string): Promise<MetrosResponse> {
 
 export async function searchClubs(
   baseUrl: string,
-  counties: string,
+  query: { counties?: string; metros?: string },
   page = 1,
   perPage = 20,
 ): Promise<ClubSearchResponse> {
   const params = new URLSearchParams({
-    counties,
     page: String(page),
     per_page: String(perPage),
   });
+
+  if (query.metros) {
+    params.set("metros", query.metros);
+  } else if (query.counties) {
+    params.set("counties", query.counties);
+  }
 
   const response = await fetch(`${baseUrl}/api/clubs/search.json?${params}`);
   if (!response.ok) throw new Error(`Failed to search clubs: ${response.status}`);

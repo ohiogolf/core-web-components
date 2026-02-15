@@ -1,5 +1,6 @@
 export interface ClubSearchDetail {
-  counties: string;
+  counties?: string;
+  metros?: string;
   label: string;
 }
 
