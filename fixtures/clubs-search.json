@@ -1,0 +1,65 @@
+{
+  "clubs": [
+    {
+      "id": 101,
+      "name": "Scioto Country Club",
+      "short_name": "Scioto CC",
+      "url": "https://www.sciotocc.com",
+      "status": "private",
+      "num_holes": 18,
+      "year_founded": 1916,
+      "address": { "city": "Columbus", "state": "OH", "county": "Franklin" },
+      "phones": [{ "label": "Pro Shop", "number": "614-486-4341" }]
+    },
+    {
+      "id": 102,
+      "name": "Muirfield Village Golf Club",
+      "short_name": "Muirfield Village",
+      "url": "https://www.muirfieldvillage.com",
+      "status": "private",
+      "num_holes": 18,
+      "year_founded": 1974,
+      "address": { "city": "Dublin", "state": "OH", "county": "Franklin" },
+      "phones": [{ "label": "Pro Shop", "number": "614-889-6740" }]
+    },
+    {
+      "id": 103,
+      "name": "The Ohio State University Golf Club",
+      "short_name": "OSU Golf Club",
+      "url": "https://www.osugolfclub.com",
+      "status": "public",
+      "num_holes": 36,
+      "year_founded": 1938,
+      "address": { "city": "Columbus", "state": "OH", "county": "Franklin" },
+      "phones": [{ "label": "Pro Shop", "number": "614-459-4653" }]
+    },
+    {
+      "id": 104,
+      "name": "New Albany Links Golf Club",
+      "short_name": "New Albany Links",
+      "url": "https://www.newalbanylinksgc.com",
+      "status": "public",
+      "num_holes": 18,
+      "year_founded": 1991,
+      "address": { "city": "New Albany", "state": "OH", "county": "Franklin" },
+      "phones": [{ "label": "Pro Shop", "number": "614-855-8300" }]
+    },
+    {
+      "id": 105,
+      "name": "Columbus Country Club",
+      "short_name": "Columbus CC",
+      "url": "https://www.columbuscc.org",
+      "status": "private",
+      "num_holes": 18,
+      "year_founded": 1903,
+      "address": { "city": "Columbus", "state": "OH", "county": "Franklin" },
+      "phones": [{ "label": "Main", "number": "614-265-5252" }]
+    }
+  ],
+  "meta": {
+    "total_count": 5,
+    "total_pages": 1,
+    "current_page": 1,
+    "per_page": 20
+  }
+}
