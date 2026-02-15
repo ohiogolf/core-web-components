@@ -130,8 +130,20 @@ describe("OhioCountyMap", () => {
     });
   });
 
-  describe("click behavior", () => {
-    it("dispatches club-search event on county click", async () => {
+  describe("region mode (default)", () => {
+    it("selects all counties in the region on click", async () => {
+      const el = await mountMap();
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new Event("click"));
+
+      const selected = el.shadowRoot!.querySelectorAll(".selected");
+      // All OGA counties should be selected
+      const ogaCounties = el.shadowRoot!.querySelectorAll('[data-region="oga"]');
+      expect(selected.length).toBe(ogaCounties.length);
+      expect(selected.length).toBeGreaterThan(1);
+    });
+
+    it("dispatches club-search with metros for the region", async () => {
       const el = await mountMap();
       const handler = vi.fn();
       el.addEventListener("club-search", handler);
@@ -139,16 +151,16 @@ describe("OhioCountyMap", () => {
       const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
       path.dispatchEvent(new Event("click"));
 
-      // Wait for debounce
       await vi.waitFor(() => {
         expect(handler).toHaveBeenCalledOnce();
       }, { timeout: 500 });
 
       const event = handler.mock.calls[0][0] as CustomEvent;
-      expect(event.detail).toEqual({ counties: "Franklin", label: "Franklin County" });
+      expect(event.detail.label).toBe("Ohio Golf Association");
+      expect(event.detail.metros).toBe("columbus");
     });
 
-    it("dispatches county-selected event on county click", async () => {
+    it("dispatches county-selected for the clicked county", async () => {
       const el = await mountMap();
       const handler = vi.fn();
       el.addEventListener("county-selected", handler);
@@ -168,27 +180,84 @@ describe("OhioCountyMap", () => {
       });
     });
 
-    it("adds selected class to clicked county", async () => {
+    it("ignores click on county in already-selected region", async () => {
       const el = await mountMap();
+      const handler = vi.fn();
+
+      const franklin = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      franklin.dispatchEvent(new Event("click"));
+
+      await vi.waitFor(() => {}, { timeout: 400 });
+
+      el.addEventListener("club-search", handler);
+      // Click a different county in the same region (OGA)
+      const delaware = el.shadowRoot!.querySelector('[data-county="Delaware"]') as SVGPathElement;
+      delaware.dispatchEvent(new Event("click"));
+
+      await new Promise((r) => setTimeout(r, 500));
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it("switches selection when clicking a different region", async () => {
+      const el = await mountMap();
+
+      const franklin = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      franklin.dispatchEvent(new Event("click"));
+
+      await vi.waitFor(() => {}, { timeout: 400 });
+
+      const handler = vi.fn();
+      el.addEventListener("club-search", handler);
+
+      const cuyahoga = el.shadowRoot!.querySelector('[data-county="Cuyahoga"]') as SVGPathElement;
+      cuyahoga.dispatchEvent(new Event("click"));
+
+      await vi.waitFor(() => {
+        expect(handler).toHaveBeenCalledOnce();
+      }, { timeout: 500 });
+
+      // OGA counties should no longer be selected
+      const ogaSelected = el.shadowRoot!.querySelectorAll('[data-region="oga"].selected');
+      expect(ogaSelected.length).toBe(0);
+
+      // NOGA counties should be selected
+      const nogaSelected = el.shadowRoot!.querySelectorAll('[data-region="noga"].selected');
+      expect(nogaSelected.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("county mode", () => {
+    it("selects only the clicked county", async () => {
+      const el = await mountMap({ "selection-mode": "county" });
+      const handler = vi.fn();
+      el.addEventListener("club-search", handler);
+
       const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
       path.dispatchEvent(new Event("click"));
-      expect(path.classList.contains("selected")).toBe(true);
+
+      await vi.waitFor(() => {
+        expect(handler).toHaveBeenCalledOnce();
+      }, { timeout: 500 });
+
+      const event = handler.mock.calls[0][0] as CustomEvent;
+      expect(event.detail).toEqual({ counties: "Franklin", label: "Franklin County" });
+
+      const selected = el.shadowRoot!.querySelectorAll(".selected");
+      expect(selected.length).toBe(1);
     });
 
     it("ignores click on already-selected county", async () => {
-      const el = await mountMap();
+      const el = await mountMap({ "selection-mode": "county" });
       const handler = vi.fn();
 
       const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
       path.dispatchEvent(new Event("click"));
 
-      // Wait for first debounce to clear
       await vi.waitFor(() => {}, { timeout: 400 });
 
       el.addEventListener("club-search", handler);
-      path.dispatchEvent(new Event("click")); // Click again — should no-op
+      path.dispatchEvent(new Event("click"));
 
-      // Give it time to confirm nothing fires
       await new Promise((r) => setTimeout(r, 500));
       expect(handler).not.toHaveBeenCalled();
       expect(path.classList.contains("selected")).toBe(true);

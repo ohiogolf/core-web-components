@@ -10,6 +10,7 @@ export class OhioCountyMap extends HTMLElement {
   private countyToMetro = new Map<string, string>();
   private countyToRegion = new Map<string, Region>();
   private selectedCounty: string | null = null;
+  private selectedRegion: string | null = null;
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
@@ -23,6 +24,11 @@ export class OhioCountyMap extends HTMLElement {
 
   private get baseUrl(): string {
     return this.getAttribute("api-base-url") ?? "https://core.ohiogolf.org";
+  }
+
+  private get selectionMode(): "region" | "county" {
+    const mode = this.getAttribute("selection-mode");
+    return mode === "county" ? "county" : "region";
   }
 
   private async load() {
@@ -111,12 +117,20 @@ export class OhioCountyMap extends HTMLElement {
 
       path.addEventListener("mouseenter", () => {
         svg.classList.add("has-hover");
-        path.classList.add("hovered");
+        if (this.selectionMode === "region" && region) {
+          svg.querySelectorAll(`[data-region="${region.id}"]`).forEach((p) =>
+            p.classList.add("hovered"),
+          );
+        } else {
+          path.classList.add("hovered");
+        }
       });
 
       path.addEventListener("mouseleave", () => {
         svg.classList.remove("has-hover");
-        path.classList.remove("hovered");
+        svg.querySelectorAll(".hovered").forEach((p) =>
+          p.classList.remove("hovered"),
+        );
       });
 
       path.addEventListener("click", () => this.handleSelect(name));
@@ -135,19 +149,25 @@ export class OhioCountyMap extends HTMLElement {
   }
 
   private handleSelect(county: string) {
-    const svg = this.shadowRoot!.querySelector("svg")!;
-
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
 
-    // Ignore if already selected
+    if (this.selectionMode === "region") {
+      this.handleRegionSelect(county);
+    } else {
+      this.handleCountySelect(county);
+    }
+  }
+
+  private handleCountySelect(county: string) {
+    const svg = this.shadowRoot!.querySelector("svg")!;
+
     if (this.selectedCounty === county) {
       return;
     }
 
-    // Select new county
-    svg.querySelector(".selected")?.classList.remove("selected");
+    svg.querySelectorAll(".selected").forEach((p) => p.classList.remove("selected"));
     const path = svg.querySelector(`[data-county="${county}"]`);
     path?.classList.add("selected");
     this.selectedCounty = county;
@@ -170,24 +190,48 @@ export class OhioCountyMap extends HTMLElement {
     }, 300);
   }
 
-  private selectRegion(regionId: string) {
+  private handleRegionSelect(county: string) {
+    const region = this.countyToRegion.get(county);
+    if (!region) return;
+
+    if (this.selectedRegion === region.id) {
+      return;
+    }
+
+    this.selectRegion(region.id, county);
+  }
+
+  private selectRegion(regionId: string, triggeredByCounty?: string) {
+    const svg = this.shadowRoot!.querySelector("svg")!;
     const region = REGIONS.find((r) => r.id === regionId);
     if (!region) return;
+
+    svg.querySelectorAll(".selected").forEach((p) => p.classList.remove("selected"));
+    this.selectedRegion = regionId;
 
     const counties: string[] = [];
     for (const [county, r] of this.countyToRegion) {
       if (r.id === regionId) {
         counties.push(county);
-        const path = this.shadowRoot!.querySelector(`[data-county="${county}"]`);
-        path?.classList.add("selected");
+        svg.querySelector(`[data-county="${county}"]`)?.classList.add("selected");
       }
     }
 
     if (counties.length > 0) {
-      dispatchClubSearch(this, {
-        counties: counties.join(","),
-        label: region.name,
-      });
+      this.debounceTimer = setTimeout(() => {
+        dispatchClubSearch(this, {
+          metros: region.metros.join(","),
+          label: region.name,
+        });
+
+        if (triggeredByCounty) {
+          dispatchCountySelected(this, {
+            county: triggeredByCounty,
+            regionId: region.id,
+            regionName: region.name,
+          });
+        }
+      }, 300);
     }
   }
 

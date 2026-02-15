@@ -15,6 +15,7 @@ The component fetches metro-to-county mappings from the API at runtime, so bound
 | Attribute | Default | Description |
 |-----------|---------|-------------|
 | `api-base-url` | `https://core.ohiogolf.org` | Base URL for the metros API endpoint |
+| `selection-mode` | `region` | `"region"` selects all counties in a region on click. `"county"` selects a single county. |
 | `default-region` | — | Region ID (e.g., `noga`) to auto-select on load. Highlights all counties in that region and dispatches a `club-search` event. |
 
 ## Data attributes (read-only)
@@ -61,9 +62,17 @@ Dispatched alongside `club-search` when a county is selected. Intended for host 
 
 ## Behavior
 
+### Region mode (default)
+- **Hover:** highlights all counties in the hovered region and mutes the rest
+- **Click:** selects all counties in the region with a gold stroke, dispatches events with all region counties. Clicking another county in the same region is a no-op.
+- **Keyboard:** counties are focusable with Tab. Enter or Space to select the region.
+
+### County mode (`selection-mode="county"`)
 - **Hover:** highlights the hovered county and mutes all others
-- **Click:** selects the county with a gold stroke, dispatches events. Clicking the same county again is a no-op; select a different county to switch.
+- **Click:** selects a single county with a gold stroke, dispatches events. Clicking the same county again is a no-op.
 - **Keyboard:** counties are focusable with Tab. Enter or Space to select.
+
+### Both modes
 - **Loading:** shows a spinner while fetching metro data
 - **Error:** shows a retry message if the fetch fails
 - **Legend:** displays all four golf association regions with colored swatches (display only)
