@@ -1,30 +1,57 @@
 # `<ohio-county-map>`
 
-Interactive SVG map of Ohio's 88 counties, colored by golf association region. Click a county to dispatch search events that drive a results panel (or anything else listening).
+Interactive SVG map of Ohio's 88 counties, colored by golf association region. Click a county to select its region (or just that county) and dispatch search events that can drive a results panel or anything else.
 
-## Usage
+![ohio-county-map screenshot](../../../docs/images/ohio-county-map.png)
+
+## Quick Start
+
+Add the script tag and drop in the component — no configuration needed:
 
 ```html
-<ohio-county-map api-base-url="https://core.ohiogolf.org"></ohio-county-map>
+<script src="https://ohiogolf.github.io/core-web-components/ohio-golf-core-components.js"></script>
+
+<ohio-county-map></ohio-county-map>
 ```
 
-The component fetches metro-to-county mappings from the API at runtime, so boundary changes in core propagate automatically without rebuilding.
+The component fetches metro-to-county mappings from `core.ohiogolf.org` at runtime, so boundary changes propagate automatically without rebuilding.
 
-## Attributes
+Pair it with `<club-search-results>` to show matching clubs when a region is clicked:
+
+```html
+<ohio-county-map></ohio-county-map>
+<club-search-results></club-search-results>
+```
+
+## Advanced Usage
+
+### Attributes
 
 | Attribute | Default | Description |
 |-----------|---------|-------------|
 | `api-base-url` | `https://core.ohiogolf.org` | Base URL for the metros API endpoint |
 | `selection-mode` | `region` | `"region"` selects all counties in a region on click. `"county"` selects a single county. |
-| `default-region` | — | Region ID (e.g., `noga`) to auto-select on load. Highlights all counties in that region and dispatches a `club-search` event. |
+| `default-region` | — | Region ID to auto-select on load. Available: `noga`, `oga`, `gcga`, `mvg` |
 
-## Data attributes (read-only)
+**Pre-select a region on load** — great for association-specific pages:
 
-| Attribute | Values | Description |
-|-----------|--------|-------------|
-| `data-state` | `loading`, `ready`, `error` | Current component state. Use for external CSS targeting: `ohio-county-map[data-state="loading"] { ... }` |
+```html
+<ohio-county-map default-region="noga"></ohio-county-map>
+```
 
-## CSS custom properties
+**Switch to county-level selection:**
+
+```html
+<ohio-county-map selection-mode="county"></ohio-county-map>
+```
+
+**Point to a different API** (staging, local dev, etc.):
+
+```html
+<ohio-county-map api-base-url="https://staging.core.ohiogolf.org"></ohio-county-map>
+```
+
+### CSS Custom Properties
 
 All styling is encapsulated by Shadow DOM. These custom properties are the only way to theme the component from the host page.
 
@@ -39,46 +66,64 @@ All styling is encapsulated by Shadow DOM. These custom properties are the only 
 | `--map-font-family` | `inherit` | Font family for the legend |
 | `--map-spinner-color` | `#003366` | Loading spinner color |
 
-## Events dispatched
+### Events Dispatched
 
-### `club-search`
-
-Dispatched when a county is clicked. Bubbles and crosses shadow boundaries (`composed`).
+**`club-search`** — Dispatched when a county or region is selected. Bubbles and crosses shadow boundaries (`composed`).
 
 ```typescript
-// Select a county
-{ counties: "Franklin", label: "Franklin County" }
+// Region mode (default)
+{ metros: "columbus", label: "Ohio Golf Association" }
 
-// Clicking the same county again is a no-op; select a different county to switch
+// County mode
+{ counties: "Franklin", label: "Franklin County" }
 ```
 
-### `county-selected`
-
-Dispatched alongside `club-search` when a county is selected. Intended for host page use (URL sync, analytics, etc.).
+**`county-selected`** — Dispatched alongside `club-search`. Intended for host page use (URL sync, analytics, etc.).
 
 ```typescript
 { county: "Franklin", regionId: "oga", regionName: "Ohio Golf Association" }
 ```
 
-## Behavior
+### Data Attributes (Read-Only)
 
-### Region mode (default)
-- **Hover:** highlights all counties in the hovered region and mutes the rest
-- **Click:** selects all counties in the region with a gold stroke, dispatches events with all region counties. Clicking another county in the same region is a no-op.
-- **Keyboard:** counties are focusable with Tab. Enter or Space to select the region.
+| Attribute | Values | Description |
+|-----------|--------|-------------|
+| `data-state` | `loading`, `ready`, `error` | Current component state. Use for external CSS: `ohio-county-map[data-state="loading"] { ... }` |
 
-### County mode (`selection-mode="county"`)
-- **Hover:** highlights the hovered county and mutes all others
+## Technical Details
+
+### Behavior
+
+**Region mode (default):**
+- **Hover:** highlights all counties in the hovered region, mutes the rest
+- **Click:** selects all counties in the region with a gold stroke, dispatches events. Clicking another county in the same region is a no-op.
+- **Keyboard:** counties are focusable with Tab. Enter or Space to select.
+
+**County mode** (`selection-mode="county"`):
+- **Hover:** highlights the hovered county, mutes all others
 - **Click:** selects a single county with a gold stroke, dispatches events. Clicking the same county again is a no-op.
 - **Keyboard:** counties are focusable with Tab. Enter or Space to select.
 
-### Both modes
-- **Loading:** shows a spinner while fetching metro data
-- **Error:** shows a retry message if the fetch fails
-- **Legend:** displays all four golf association regions with colored swatches (display only)
+**Both modes:**
+- Shows a spinner while fetching metro data
+- Shows a retry message if the fetch fails
+- Displays a legend with all four golf association regions
 
-## Accessibility
+### Accessibility
 
 - SVG has `role="img"` with a descriptive `aria-label`
 - Each county path has `role="button"`, `tabindex="0"`, and an `aria-label` like "Franklin County, Ohio Golf Association"
 - Keyboard navigation with Tab, selection with Enter/Space
+- Focus outlines visible on keyboard navigation
+
+### Development
+
+```bash
+bin/setup          # Install dependencies
+bin/dev            # Start dev server at http://localhost:5173
+bin/test           # Run tests
+```
+
+The dev server mocks the API so the component works without a running backend. Fixture data is served from `fixtures/`. The dev page sets `api-base-url=""` to route requests to the local Vite server.
+
+**SVG map data:** `src/data/ohio-counties.ts` contains pre-computed SVG path strings for all 88 counties, generated from Census TIGER boundaries. Regenerate with `npm run generate-svg` if boundary data ever updates.

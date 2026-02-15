@@ -1,29 +1,58 @@
 # `<club-search-results>`
 
-Displays paginated golf club results in response to search events. Map-agnostic — it responds to a generic `club-search` event, so any component (the county map, a future Mapbox map, or a simple form) can drive it.
+Paginated golf club results panel that responds to search events. Map-agnostic — it listens for a generic `club-search` event, so any component (the county map, a future Mapbox map, or a simple form) can drive it.
 
-## Usage
+![club-search-results screenshot](../../../docs/images/club-search-results.png)
+
+## Quick Start
+
+Add the script tag and drop in the component alongside the county map:
 
 ```html
-<club-search-results api-base-url="https://core.ohiogolf.org"></club-search-results>
+<script src="https://ohiogolf.github.io/core-web-components/ohio-golf-core-components.js"></script>
+
+<ohio-county-map></ohio-county-map>
+<club-search-results></club-search-results>
 ```
 
-The component listens for `club-search` events on `document`. It does not manage URLs or navigation — the host page decides what to do with `club-detail` events.
+Click a region on the map and matching clubs appear automatically. No wiring required — both components communicate via DOM events.
 
-## Attributes
+The component can also be used standalone. Dispatch a `club-search` event from your own code to trigger a search:
+
+```html
+<club-search-results></club-search-results>
+
+<script>
+  document.dispatchEvent(new CustomEvent('club-search', {
+    detail: { counties: "Franklin", label: "Franklin County" },
+    bubbles: true,
+    composed: true,
+  }));
+</script>
+```
+
+## Advanced Usage
+
+### Attributes
 
 | Attribute | Default | Description |
 |-----------|---------|-------------|
 | `api-base-url` | `https://core.ohiogolf.org` | Base URL for the club search API endpoint |
 | `page-size` | `20` | Number of results per page |
 
-## Data attributes (read-only)
+**Change results per page:**
 
-| Attribute | Values | Description |
-|-----------|--------|-------------|
-| `data-state` | `empty`, `loading`, `results`, `no-results`, `error` | Current component state. Use for external CSS targeting: `club-search-results[data-state="loading"] { ... }` |
+```html
+<club-search-results page-size="10"></club-search-results>
+```
 
-## CSS custom properties
+**Point to a different API:**
+
+```html
+<club-search-results api-base-url="https://staging.core.ohiogolf.org"></club-search-results>
+```
+
+### CSS Custom Properties
 
 All styling is encapsulated by Shadow DOM. These custom properties are the only way to theme the component from the host page.
 
@@ -40,30 +69,23 @@ All styling is encapsulated by Shadow DOM. These custom properties are the only 
 | `--results-text-color` | `#374151` | Body text color |
 | `--results-pagination-color` | `#003366` | Pagination button color |
 
-## Events listened for
+### Events
 
-### `club-search` (on `document`)
-
-Triggers a search. The component reads the event's `detail` and fetches matching clubs.
+**Listens for `club-search`** (on `document`) — Triggers a search. The component reads the event's `detail` and fetches matching clubs.
 
 ```typescript
-// Trigger a search
 { counties: "Franklin", label: "Franklin County" }
-
-// The map no longer dispatches null — clicking the same county is a no-op
+// or
+{ metros: "columbus", label: "Ohio Golf Association" }
 ```
 
-## Events dispatched
-
-### `club-detail`
-
-Dispatched when a user clicks a club name. Bubbles and crosses shadow boundaries (`composed`). The component does not navigate — the host page decides what to do.
+**Dispatches `club-detail`** — Fired when a user clicks a club name. Bubbles and crosses shadow boundaries (`composed`). The component does not navigate — the host page decides what to do.
 
 ```typescript
 { clubId: 123, clubName: "Scioto Country Club" }
 ```
 
-### Host page example
+**Handle club clicks on the host page:**
 
 ```html
 <script>
@@ -73,7 +95,15 @@ Dispatched when a user clicks a club name. Bubbles and crosses shadow boundaries
 </script>
 ```
 
-## States
+### Data Attributes (Read-Only)
+
+| Attribute | Values | Description |
+|-----------|--------|-------------|
+| `data-state` | `empty`, `loading`, `results`, `no-results`, `error` | Current component state. Use for external CSS: `club-search-results[data-state="loading"] { ... }` |
+
+## Technical Details
+
+### States
 
 | State | UI |
 |-------|-----|
@@ -81,10 +111,20 @@ Dispatched when a user clicks a club name. Bubbles and crosses shadow boundaries
 | `loading` | Spinner with contextual message (e.g., "Searching clubs in Franklin County...") |
 | `results` | Club cards with name, status badge, holes, city, phone. Pagination if multiple pages. |
 | `no-results` | "No golf clubs found in Franklin County." |
-| `error` | "Unable to load clubs. Please try again." with retry button (`role="alert"`) |
+| `error` | "Unable to load clubs. Please try again." with retry button |
 
-## Accessibility
+### Accessibility
 
-- Results announcement via `aria-live="polite"` so screen readers announce when results arrive
+- Results announced via `aria-live="polite"` so screen readers announce when results arrive
 - Error state uses `role="alert"` for immediate screen reader notification
 - Pagination uses `<nav aria-label="Pagination">`
+
+### Development
+
+```bash
+bin/setup          # Install dependencies
+bin/dev            # Start dev server at http://localhost:5173
+bin/test           # Run tests
+```
+
+The dev server mocks the API so the component works without a running backend. Fixture data is served from `fixtures/`. The dev page sets `api-base-url=""` to route requests to the local Vite server.
