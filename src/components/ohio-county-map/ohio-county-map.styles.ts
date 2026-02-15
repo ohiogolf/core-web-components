@@ -59,6 +59,10 @@ export const styles = `
     transition: opacity 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease;
   }
 
+  svg path:focus {
+    outline: none;
+  }
+
   svg path:focus-visible {
     outline: 2px solid #2563eb;
     outline-offset: 1px;
