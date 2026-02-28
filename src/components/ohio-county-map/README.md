@@ -32,6 +32,10 @@ Pair it with `<club-search-results>` to show matching clubs when a region is cli
 | `api-base-url` | `https://core.ohiogolf.org` | Base URL for the metros API endpoint |
 | `selection-mode` | `region` | `"region"` selects all counties in a region on click. `"county"` selects a single county. |
 | `default-region` | — | Region ID to auto-select on load. Available: `noga`, `oga`, `gcga`, `mvg` |
+| `noga-url` | USGA Get a Handicap | Override the link for the NOGA region |
+| `oga-url` | GHIN Join | Override the link for the OGA region |
+| `gcga-url` | GCGA Start/Select | Override the link for the GCGA region |
+| `mvg-url` | MVG Join/Renew | Override the link for the MVG region |
 
 **Pre-select a region on load** — great for association-specific pages:
 
@@ -51,6 +55,17 @@ Pair it with `<club-search-results>` to show matching clubs when a region is cli
 <ohio-county-map api-base-url="https://staging.core.ohiogolf.org"></ohio-county-map>
 ```
 
+**Override region links** — clicking a county shows a tooltip with a "Join {ORG}" link, and the legend links to each organization's signup page. Both use default URLs that can be overridden with `{region}-url` attributes:
+
+```html
+<ohio-county-map
+  noga-url="https://example.com/noga-signup"
+  oga-url="https://example.com/oga-signup"
+  gcga-url="https://example.com/gcga-signup"
+  mvg-url="https://example.com/mvg-signup">
+</ohio-county-map>
+```
+
 ### CSS Custom Properties
 
 All styling is encapsulated by Shadow DOM. These custom properties are the only way to theme the component from the host page.
@@ -59,12 +74,17 @@ All styling is encapsulated by Shadow DOM. These custom properties are the only 
 |----------|---------|-------------|
 | `--map-stroke-color` | `#ffffff` | Border color between counties |
 | `--map-stroke-width` | `0.5` | Border width between counties |
-| `--map-hover-opacity` | `0.8` | Opacity of the hovered county |
-| `--map-muted-opacity` | `0.3` | Opacity of non-hovered counties when one is hovered |
 | `--map-selected-stroke` | `#FFD700` | Stroke color for the selected county |
 | `--map-selected-stroke-width` | `2.5` | Stroke width for the selected county |
 | `--map-font-family` | `inherit` | Font family for the legend |
 | `--map-spinner-color` | `#003366` | Loading spinner color |
+| `--map-tooltip-background` | `#1f2937` | Tooltip background color |
+| `--map-tooltip-color` | `#ffffff` | Tooltip text color |
+| `--map-tooltip-font-size` | `0.8125rem` | Tooltip font size |
+| `--map-tooltip-padding` | `0.25rem 0.5rem` | Tooltip padding |
+| `--map-tooltip-border-radius` | `0.25rem` | Tooltip border radius |
+| `--map-tooltip-link-color` | `#93c5fd` | Tooltip "Join" link color |
+| `--map-touch-stroke-width` | `1.5` | County border width on touch devices |
 
 ### Events Dispatched
 
@@ -95,14 +115,16 @@ All styling is encapsulated by Shadow DOM. These custom properties are the only 
 ### Behavior
 
 **Region mode (default):**
-- **Hover:** highlights all counties in the hovered region, mutes the rest
-- **Click:** selects all counties in the region with a gold stroke, dispatches events. Clicking another county in the same region is a no-op.
+- **Click/tap:** selects all counties in the region with a gold stroke, shows a tooltip with the county name and a "Join {ORG}" link, and dispatches events. Clicking another county in the same region is a no-op.
 - **Keyboard:** counties are focusable with Tab. Enter or Space to select.
 
 **County mode** (`selection-mode="county"`):
-- **Hover:** highlights the hovered county, mutes all others
-- **Click:** selects a single county with a gold stroke, dispatches events. Clicking the same county again is a no-op.
+- **Click/tap:** selects a single county with a gold stroke, shows a tooltip with the county name and a "Join {ORG}" link, and dispatches events. Clicking the same county again is a no-op.
 - **Keyboard:** counties are focusable with Tab. Enter or Space to select.
+
+**Responsive:**
+- County borders are automatically widened on touch devices for easier tapping (`@media (pointer: coarse)`).
+- The legend stacks vertically on screens narrower than 400px.
 
 **Both modes:**
 - Shows a spinner while fetching metro data

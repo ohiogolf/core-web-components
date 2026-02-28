@@ -31,6 +31,10 @@ export class OhioCountyMap extends HTMLElement {
     return mode === "county" ? "county" : "region";
   }
 
+  private regionUrl(region: Region): string {
+    return this.getAttribute(`${region.id}-url`) ?? region.url;
+  }
+
   private async load() {
     this.setState("loading");
     this.renderLoading();
@@ -115,25 +119,13 @@ export class OhioCountyMap extends HTMLElement {
         `${name} County${region ? `, ${region.name}` : ""}`,
       );
 
-      path.addEventListener("mouseenter", () => {
-        svg.classList.add("has-hover");
-        if (this.selectionMode === "region" && region) {
-          svg.querySelectorAll(`[data-region="${region.id}"]`).forEach((p) =>
-            p.classList.add("hovered"),
-          );
-        } else {
-          path.classList.add("hovered");
-        }
+      path.addEventListener("click", (e: MouseEvent) => {
+        const rect = root.host.getBoundingClientRect();
+        tooltip.style.left = `${e.clientX - rect.left + 12}px`;
+        tooltip.style.top = `${e.clientY - rect.top + 12}px`;
+        this.showTooltip(tooltip, name, region);
+        this.handleSelect(name);
       });
-
-      path.addEventListener("mouseleave", () => {
-        svg.classList.remove("has-hover");
-        svg.querySelectorAll(".hovered").forEach((p) =>
-          p.classList.remove("hovered"),
-        );
-      });
-
-      path.addEventListener("click", () => this.handleSelect(name));
       path.addEventListener("keydown", (e: KeyboardEvent) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -144,7 +136,11 @@ export class OhioCountyMap extends HTMLElement {
       svg.appendChild(path);
     }
 
+    const tooltip = document.createElement("div");
+    tooltip.className = "tooltip";
+
     root.appendChild(svg);
+    root.appendChild(tooltip);
     root.appendChild(this.buildLegend());
   }
 
@@ -233,6 +229,26 @@ export class OhioCountyMap extends HTMLElement {
         }
       }, 300);
     }
+
+  }
+
+  private showTooltip(tooltip: HTMLDivElement, county: string, region: Region | undefined) {
+    tooltip.innerHTML = "";
+
+    const countySpan = document.createElement("span");
+    countySpan.textContent = `${county} County`;
+    tooltip.appendChild(countySpan);
+
+    if (region) {
+      const link = document.createElement("a");
+      link.textContent = `Join ${region.id.toUpperCase()}`;
+      link.href = this.regionUrl(region);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      tooltip.appendChild(link);
+    }
+
+    tooltip.classList.add("visible");
   }
 
   private buildLegend(): HTMLDivElement {
@@ -247,8 +263,11 @@ export class OhioCountyMap extends HTMLElement {
       swatch.className = "legend-swatch";
       swatch.style.backgroundColor = region.color;
 
-      const label = document.createElement("span");
+      const label = document.createElement("a");
       label.textContent = region.name;
+      label.href = this.regionUrl(region);
+      label.target = "_blank";
+      label.rel = "noopener noreferrer";
 
       item.appendChild(swatch);
       item.appendChild(label);

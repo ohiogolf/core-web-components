@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { OhioCountyMap } from "./ohio-county-map";
+import { REGIONS } from "../../data/regions";
 import metrosFixture from "../../../fixtures/metros.json";
 
 // Mock the API client to return fixture data without network requests
@@ -91,6 +92,43 @@ describe("OhioCountyMap", () => {
     });
   });
 
+  describe("tooltip", () => {
+    it("is hidden by default", async () => {
+      const el = await mountMap();
+      const tooltip = el.shadowRoot!.querySelector(".tooltip") as HTMLDivElement;
+      expect(tooltip).not.toBeNull();
+      expect(tooltip.classList.contains("visible")).toBe(false);
+    });
+
+    it("shows county name and join link on click", async () => {
+      const el = await mountMap();
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new MouseEvent("click", { clientX: 100, clientY: 100 }));
+
+      const tooltip = el.shadowRoot!.querySelector(".tooltip") as HTMLDivElement;
+      expect(tooltip.classList.contains("visible")).toBe(true);
+
+      const span = tooltip.querySelector("span")!;
+      expect(span.textContent).toBe("Franklin County");
+
+      const link = tooltip.querySelector("a") as HTMLAnchorElement;
+      expect(link.textContent).toBe("Join OGA");
+      const oga = REGIONS.find((r) => r.id === "oga")!;
+      expect(link.href).toBe(oga.url);
+      expect(link.target).toBe("_blank");
+    });
+
+    it("uses overridden URL in tooltip link", async () => {
+      const el = await mountMap({ "oga-url": "https://custom.example.com/" });
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new MouseEvent("click", { clientX: 100, clientY: 100 }));
+
+      const tooltip = el.shadowRoot!.querySelector(".tooltip") as HTMLDivElement;
+      const link = tooltip.querySelector("a") as HTMLAnchorElement;
+      expect(link.href).toBe("https://custom.example.com/");
+    });
+  });
+
   describe("accessibility", () => {
     it("sets role=img and aria-label on the SVG", async () => {
       const el = await mountMap();
@@ -127,6 +165,26 @@ describe("OhioCountyMap", () => {
       expect(legend.textContent).toContain("Ohio Golf Association");
       expect(legend.textContent).toContain("Greater Cincinnati Golf Assoc.");
       expect(legend.textContent).toContain("Miami Valley Golf");
+    });
+
+    it("renders region names as links to default URLs", async () => {
+      const el = await mountMap();
+      const links = el.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".legend-item a");
+      expect(links.length).toBe(4);
+      for (const link of links) {
+        const region = REGIONS.find((r) => r.name === link.textContent);
+        expect(region).toBeDefined();
+        expect(link.href).toBe(region!.url);
+        expect(link.target).toBe("_blank");
+        expect(link.rel).toBe("noopener noreferrer");
+      }
+    });
+
+    it("uses overridden URL from attribute", async () => {
+      const el = await mountMap({ "oga-url": "https://custom.example.com/" });
+      const links = el.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".legend-item a");
+      const ogaLink = Array.from(links).find((a) => a.textContent === "Ohio Golf Association");
+      expect(ogaLink!.href).toBe("https://custom.example.com/");
     });
   });
 

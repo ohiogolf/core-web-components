@@ -2,6 +2,7 @@ export const styles = `
   :host {
     display: block;
     font-family: var(--map-font-family, inherit);
+    position: relative;
   }
 
   /* Loading state */
@@ -56,7 +57,7 @@ export const styles = `
     stroke: var(--map-stroke-color, #ffffff);
     stroke-width: var(--map-stroke-width, 0.5);
     cursor: pointer;
-    transition: opacity 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease;
+    transition: stroke 0.15s ease, stroke-width 0.15s ease;
   }
 
   svg path:focus {
@@ -68,20 +69,10 @@ export const styles = `
     outline-offset: 1px;
   }
 
-  /* Hover: mute non-hovered counties */
-  svg.has-hover path:not(.hovered) {
-    opacity: var(--map-muted-opacity, 0.3);
-  }
-
-  svg.has-hover path.hovered {
-    opacity: var(--map-hover-opacity, 0.8);
-  }
-
   /* Selected county */
   svg path.selected {
     stroke: var(--map-selected-stroke, #FFD700);
     stroke-width: var(--map-selected-stroke-width, 2.5);
-    opacity: 1;
   }
 
   /* Legend */
@@ -100,10 +91,67 @@ export const styles = `
     color: #374151;
   }
 
+  .legend-item a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .legend-item a:hover {
+    text-decoration: underline;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    background: var(--map-tooltip-background, #1f2937);
+    color: var(--map-tooltip-color, #ffffff);
+    font-size: var(--map-tooltip-font-size, 0.8125rem);
+    padding: var(--map-tooltip-padding, 0.25rem 0.5rem);
+    border-radius: var(--map-tooltip-border-radius, 0.25rem);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .tooltip.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .tooltip a {
+    color: var(--map-tooltip-link-color, #93c5fd);
+    text-decoration: none;
+  }
+
+  .tooltip a:hover {
+    text-decoration: underline;
+  }
+
   .legend-swatch {
     width: 14px;
     height: 14px;
     border-radius: 2px;
     flex-shrink: 0;
+  }
+
+  /* Touch devices: larger tap targets */
+  @media (pointer: coarse) {
+    svg path {
+      stroke-width: var(--map-touch-stroke-width, 1.5);
+    }
+  }
+
+  /* Narrow screens: stack legend */
+  @media (max-width: 400px) {
+    .legend {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
   }
 `;
