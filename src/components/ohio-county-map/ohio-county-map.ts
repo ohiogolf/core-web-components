@@ -31,6 +31,10 @@ export class OhioCountyMap extends HTMLElement {
     return mode === "county" ? "county" : "region";
   }
 
+  private regionUrl(region: Region): string {
+    return this.getAttribute(`${region.id}-url`) ?? region.url;
+  }
+
   private async load() {
     this.setState("loading");
     this.renderLoading();
@@ -233,6 +237,8 @@ export class OhioCountyMap extends HTMLElement {
         }
       }, 300);
     }
+
+    window.open(this.regionUrl(region), "_blank", "noopener,noreferrer");
   }
 
   private buildLegend(): HTMLDivElement {
@@ -247,8 +253,11 @@ export class OhioCountyMap extends HTMLElement {
       swatch.className = "legend-swatch";
       swatch.style.backgroundColor = region.color;
 
-      const label = document.createElement("span");
+      const label = document.createElement("a");
       label.textContent = region.name;
+      label.href = this.regionUrl(region);
+      label.target = "_blank";
+      label.rel = "noopener noreferrer";
 
       item.appendChild(swatch);
       item.appendChild(label);

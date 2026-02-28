@@ -32,6 +32,10 @@ Pair it with `<club-search-results>` to show matching clubs when a region is cli
 | `api-base-url` | `https://core.ohiogolf.org` | Base URL for the metros API endpoint |
 | `selection-mode` | `region` | `"region"` selects all counties in a region on click. `"county"` selects a single county. |
 | `default-region` | — | Region ID to auto-select on load. Available: `noga`, `oga`, `gcga`, `mvg` |
+| `noga-url` | USGA Get a Handicap | Override the link for the NOGA region |
+| `oga-url` | GHIN Join | Override the link for the OGA region |
+| `gcga-url` | GCGA Start/Select | Override the link for the GCGA region |
+| `mvg-url` | MVG Join/Renew | Override the link for the MVG region |
 
 **Pre-select a region on load** — great for association-specific pages:
 
@@ -49,6 +53,17 @@ Pair it with `<club-search-results>` to show matching clubs when a region is cli
 
 ```html
 <ohio-county-map api-base-url="https://staging.core.ohiogolf.org"></ohio-county-map>
+```
+
+**Override region links** — each region on the map and in the legend links to its organization's signup page by default. Use `{region}-url` attributes to point to different URLs:
+
+```html
+<ohio-county-map
+  noga-url="https://example.com/noga-signup"
+  oga-url="https://example.com/oga-signup"
+  gcga-url="https://example.com/gcga-signup"
+  mvg-url="https://example.com/mvg-signup">
+</ohio-county-map>
 ```
 
 ### CSS Custom Properties

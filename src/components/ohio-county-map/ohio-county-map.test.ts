@@ -2,6 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { OhioCountyMap } from "./ohio-county-map";
+import { REGIONS } from "../../data/regions";
 import metrosFixture from "../../../fixtures/metros.json";
 
 // Mock the API client to return fixture data without network requests
@@ -34,8 +35,13 @@ async function mountMap(attrs: Record<string, string> = {}): Promise<OhioCountyM
 }
 
 describe("OhioCountyMap", () => {
+  beforeEach(() => {
+    vi.spyOn(window, "open").mockImplementation(() => null);
+  });
+
   afterEach(() => {
     document.body.innerHTML = "";
+    vi.restoreAllMocks();
   });
 
   describe("loading state", () => {
@@ -128,9 +134,48 @@ describe("OhioCountyMap", () => {
       expect(legend.textContent).toContain("Greater Cincinnati Golf Assoc.");
       expect(legend.textContent).toContain("Miami Valley Golf");
     });
+
+    it("renders region names as links to default URLs", async () => {
+      const el = await mountMap();
+      const links = el.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".legend-item a");
+      expect(links.length).toBe(4);
+      for (const link of links) {
+        const region = REGIONS.find((r) => r.name === link.textContent);
+        expect(region).toBeDefined();
+        expect(link.href).toBe(region!.url);
+        expect(link.target).toBe("_blank");
+        expect(link.rel).toBe("noopener noreferrer");
+      }
+    });
+
+    it("uses overridden URL from attribute", async () => {
+      const el = await mountMap({ "oga-url": "https://custom.example.com/" });
+      const links = el.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".legend-item a");
+      const ogaLink = Array.from(links).find((a) => a.textContent === "Ohio Golf Association");
+      expect(ogaLink!.href).toBe("https://custom.example.com/");
+    });
   });
 
   describe("region mode (default)", () => {
+    it("opens the default region URL in a new tab on click", async () => {
+      const el = await mountMap();
+
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new Event("click"));
+
+      const oga = REGIONS.find((r) => r.id === "oga")!;
+      expect(window.open).toHaveBeenCalledWith(oga.url, "_blank", "noopener,noreferrer");
+    });
+
+    it("opens an overridden region URL when attribute is set", async () => {
+      const el = await mountMap({ "oga-url": "https://custom.example.com/" });
+
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new Event("click"));
+
+      expect(window.open).toHaveBeenCalledWith("https://custom.example.com/", "_blank", "noopener,noreferrer");
+    });
+
     it("selects all counties in the region on click", async () => {
       const el = await mountMap();
       const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;

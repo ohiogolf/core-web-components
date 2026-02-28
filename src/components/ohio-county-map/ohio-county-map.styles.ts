@@ -100,6 +100,15 @@ export const styles = `
     color: #374151;
   }
 
+  .legend-item a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .legend-item a:hover {
+    text-decoration: underline;
+  }
+
   .legend-swatch {
     width: 14px;
     height: 14px;
