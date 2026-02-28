@@ -97,6 +97,36 @@ describe("OhioCountyMap", () => {
     });
   });
 
+  describe("tooltip", () => {
+    it("is hidden by default", async () => {
+      const el = await mountMap();
+      const tooltip = el.shadowRoot!.querySelector(".tooltip") as HTMLDivElement;
+      expect(tooltip).not.toBeNull();
+      expect(tooltip.classList.contains("visible")).toBe(false);
+    });
+
+    it("shows the county name on mouseenter", async () => {
+      const el = await mountMap();
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new Event("mouseenter"));
+
+      const tooltip = el.shadowRoot!.querySelector(".tooltip") as HTMLDivElement;
+      expect(tooltip.classList.contains("visible")).toBe(true);
+      expect(tooltip.textContent).toBe("Franklin County");
+    });
+
+    it("hides on mouseleave", async () => {
+      const el = await mountMap();
+      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
+      path.dispatchEvent(new Event("mouseenter"));
+      path.dispatchEvent(new Event("mouseleave"));
+
+      const tooltip = el.shadowRoot!.querySelector(".tooltip") as HTMLDivElement;
+      expect(tooltip.classList.contains("visible")).toBe(false);
+    });
+
+  });
+
   describe("accessibility", () => {
     it("sets role=img and aria-label on the SVG", async () => {
       const el = await mountMap();

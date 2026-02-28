@@ -80,6 +80,11 @@ All styling is encapsulated by Shadow DOM. These custom properties are the only 
 | `--map-selected-stroke-width` | `2.5` | Stroke width for the selected county |
 | `--map-font-family` | `inherit` | Font family for the legend |
 | `--map-spinner-color` | `#003366` | Loading spinner color |
+| `--map-tooltip-background` | `#1f2937` | Tooltip background color |
+| `--map-tooltip-color` | `#ffffff` | Tooltip text color |
+| `--map-tooltip-font-size` | `0.8125rem` | Tooltip font size |
+| `--map-tooltip-padding` | `0.25rem 0.5rem` | Tooltip padding |
+| `--map-tooltip-border-radius` | `0.25rem` | Tooltip border radius |
 
 ### Events Dispatched
 

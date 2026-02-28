@@ -2,6 +2,7 @@ export const styles = `
   :host {
     display: block;
     font-family: var(--map-font-family, inherit);
+    position: relative;
   }
 
   /* Loading state */
@@ -107,6 +108,24 @@ export const styles = `
 
   .legend-item a:hover {
     text-decoration: underline;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--map-tooltip-background, #1f2937);
+    color: var(--map-tooltip-color, #ffffff);
+    font-size: var(--map-tooltip-font-size, 0.8125rem);
+    padding: var(--map-tooltip-padding, 0.25rem 0.5rem);
+    border-radius: var(--map-tooltip-border-radius, 0.25rem);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+  }
+
+  .tooltip.visible {
+    opacity: 1;
   }
 
   .legend-swatch {

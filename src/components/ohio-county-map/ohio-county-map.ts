@@ -128,6 +128,8 @@ export class OhioCountyMap extends HTMLElement {
         } else {
           path.classList.add("hovered");
         }
+        tooltip.textContent = `${name} County`;
+        tooltip.classList.add("visible");
       });
 
       path.addEventListener("mouseleave", () => {
@@ -135,6 +137,13 @@ export class OhioCountyMap extends HTMLElement {
         svg.querySelectorAll(".hovered").forEach((p) =>
           p.classList.remove("hovered"),
         );
+        tooltip.classList.remove("visible");
+      });
+
+      path.addEventListener("mousemove", (e: MouseEvent) => {
+        const rect = root.host.getBoundingClientRect();
+        tooltip.style.left = `${e.clientX - rect.left + 12}px`;
+        tooltip.style.top = `${e.clientY - rect.top + 12}px`;
       });
 
       path.addEventListener("click", () => this.handleSelect(name));
@@ -148,7 +157,11 @@ export class OhioCountyMap extends HTMLElement {
       svg.appendChild(path);
     }
 
+    const tooltip = document.createElement("div");
+    tooltip.className = "tooltip";
+
     root.appendChild(svg);
+    root.appendChild(tooltip);
     root.appendChild(this.buildLegend());
   }
 
