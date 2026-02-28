@@ -119,34 +119,13 @@ export class OhioCountyMap extends HTMLElement {
         `${name} County${region ? `, ${region.name}` : ""}`,
       );
 
-      path.addEventListener("mouseenter", () => {
-        svg.classList.add("has-hover");
-        if (this.selectionMode === "region" && region) {
-          svg.querySelectorAll(`[data-region="${region.id}"]`).forEach((p) =>
-            p.classList.add("hovered"),
-          );
-        } else {
-          path.classList.add("hovered");
-        }
-        tooltip.textContent = `${name} County`;
-        tooltip.classList.add("visible");
-      });
-
-      path.addEventListener("mouseleave", () => {
-        svg.classList.remove("has-hover");
-        svg.querySelectorAll(".hovered").forEach((p) =>
-          p.classList.remove("hovered"),
-        );
-        tooltip.classList.remove("visible");
-      });
-
-      path.addEventListener("mousemove", (e: MouseEvent) => {
+      path.addEventListener("click", (e: MouseEvent) => {
         const rect = root.host.getBoundingClientRect();
         tooltip.style.left = `${e.clientX - rect.left + 12}px`;
         tooltip.style.top = `${e.clientY - rect.top + 12}px`;
+        this.showTooltip(tooltip, name, region);
+        this.handleSelect(name);
       });
-
-      path.addEventListener("click", () => this.handleSelect(name));
       path.addEventListener("keydown", (e: KeyboardEvent) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -251,7 +230,25 @@ export class OhioCountyMap extends HTMLElement {
       }, 300);
     }
 
-    window.open(this.regionUrl(region), "_blank", "noopener,noreferrer");
+  }
+
+  private showTooltip(tooltip: HTMLDivElement, county: string, region: Region | undefined) {
+    tooltip.innerHTML = "";
+
+    const countySpan = document.createElement("span");
+    countySpan.textContent = `${county} County`;
+    tooltip.appendChild(countySpan);
+
+    if (region) {
+      const link = document.createElement("a");
+      link.textContent = `Join ${region.id.toUpperCase()}`;
+      link.href = this.regionUrl(region);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      tooltip.appendChild(link);
+    }
+
+    tooltip.classList.add("visible");
   }
 
   private buildLegend(): HTMLDivElement {

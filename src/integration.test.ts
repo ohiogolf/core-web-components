@@ -5,7 +5,7 @@
  * event flow from map click through to results rendering.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { OhioCountyMap } from "./components/ohio-county-map/ohio-county-map";
 import { ClubSearchResults } from "./components/club-search-results/club-search-results";
 import metrosFixture from "../fixtures/metros.json";
@@ -45,13 +45,8 @@ function clickCounty(map: OhioCountyMap, name: string) {
 }
 
 describe("Integration: map + results", () => {
-  beforeEach(() => {
-    vi.spyOn(window, "open").mockImplementation(() => null);
-  });
-
   afterEach(() => {
     document.body.innerHTML = "";
-    vi.restoreAllMocks();
   });
 
   it("results start in empty state", async () => {

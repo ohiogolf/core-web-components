@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { OhioCountyMap } from "./ohio-county-map";
 import { REGIONS } from "../../data/regions";
 import metrosFixture from "../../../fixtures/metros.json";
@@ -35,13 +35,8 @@ async function mountMap(attrs: Record<string, string> = {}): Promise<OhioCountyM
 }
 
 describe("OhioCountyMap", () => {
-  beforeEach(() => {
-    vi.spyOn(window, "open").mockImplementation(() => null);
-  });
-
   afterEach(() => {
     document.body.innerHTML = "";
-    vi.restoreAllMocks();
   });
 
   describe("loading state", () => {
@@ -105,26 +100,33 @@ describe("OhioCountyMap", () => {
       expect(tooltip.classList.contains("visible")).toBe(false);
     });
 
-    it("shows the county name on mouseenter", async () => {
+    it("shows county name and join link on click", async () => {
       const el = await mountMap();
       const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
-      path.dispatchEvent(new Event("mouseenter"));
+      path.dispatchEvent(new MouseEvent("click", { clientX: 100, clientY: 100 }));
 
       const tooltip = el.shadowRoot!.querySelector(".tooltip") as HTMLDivElement;
       expect(tooltip.classList.contains("visible")).toBe(true);
-      expect(tooltip.textContent).toBe("Franklin County");
+
+      const span = tooltip.querySelector("span")!;
+      expect(span.textContent).toBe("Franklin County");
+
+      const link = tooltip.querySelector("a") as HTMLAnchorElement;
+      expect(link.textContent).toBe("Join OGA");
+      const oga = REGIONS.find((r) => r.id === "oga")!;
+      expect(link.href).toBe(oga.url);
+      expect(link.target).toBe("_blank");
     });
 
-    it("hides on mouseleave", async () => {
-      const el = await mountMap();
+    it("uses overridden URL in tooltip link", async () => {
+      const el = await mountMap({ "oga-url": "https://custom.example.com/" });
       const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
-      path.dispatchEvent(new Event("mouseenter"));
-      path.dispatchEvent(new Event("mouseleave"));
+      path.dispatchEvent(new MouseEvent("click", { clientX: 100, clientY: 100 }));
 
       const tooltip = el.shadowRoot!.querySelector(".tooltip") as HTMLDivElement;
-      expect(tooltip.classList.contains("visible")).toBe(false);
+      const link = tooltip.querySelector("a") as HTMLAnchorElement;
+      expect(link.href).toBe("https://custom.example.com/");
     });
-
   });
 
   describe("accessibility", () => {
@@ -187,25 +189,6 @@ describe("OhioCountyMap", () => {
   });
 
   describe("region mode (default)", () => {
-    it("opens the default region URL in a new tab on click", async () => {
-      const el = await mountMap();
-
-      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
-      path.dispatchEvent(new Event("click"));
-
-      const oga = REGIONS.find((r) => r.id === "oga")!;
-      expect(window.open).toHaveBeenCalledWith(oga.url, "_blank", "noopener,noreferrer");
-    });
-
-    it("opens an overridden region URL when attribute is set", async () => {
-      const el = await mountMap({ "oga-url": "https://custom.example.com/" });
-
-      const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
-      path.dispatchEvent(new Event("click"));
-
-      expect(window.open).toHaveBeenCalledWith("https://custom.example.com/", "_blank", "noopener,noreferrer");
-    });
-
     it("selects all counties in the region on click", async () => {
       const el = await mountMap();
       const path = el.shadowRoot!.querySelector('[data-county="Franklin"]') as SVGPathElement;
