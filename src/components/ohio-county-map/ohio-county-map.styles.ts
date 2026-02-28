@@ -1,7 +1,8 @@
 export const styles = `
   :host {
     display: block;
-    font-family: var(--map-font-family, inherit);
+    font-family: var(--map-font-family, system-ui, -apple-system, sans-serif);
+    font-weight: var(--map-font-weight, 400);
     position: relative;
   }
 
@@ -51,13 +52,20 @@ export const styles = `
   svg {
     width: 100%;
     height: auto;
+    position: relative;
   }
+
 
   svg path {
     stroke: var(--map-stroke-color, #ffffff);
     stroke-width: var(--map-stroke-width, 0.5);
     cursor: pointer;
-    transition: stroke 0.15s ease, stroke-width 0.15s ease;
+    transition: stroke 0.15s ease, stroke-width 0.15s ease, filter 0.15s ease;
+  }
+
+  svg path:hover {
+    filter: brightness(1.15);
+    stroke-width: 1.5;
   }
 
   svg path:focus {
@@ -72,13 +80,15 @@ export const styles = `
   /* Selected county */
   svg path.selected {
     stroke: var(--map-selected-stroke, #FFD700);
-    stroke-width: var(--map-selected-stroke-width, 2.5);
+    stroke-width: var(--map-selected-stroke-width, 3);
+    filter: brightness(1.2);
   }
 
   /* Legend */
   .legend {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 1rem;
     padding: 0.75rem 0;
   }
@@ -87,11 +97,13 @@ export const styles = `
     display: flex;
     align-items: center;
     gap: 0.375rem;
-    font-size: 0.8125rem;
+    font-size: var(--map-legend-font-size, 1rem);
     color: #374151;
   }
 
-  .legend-item a {
+  .legend-item a,
+  .legend-item a:link,
+  .legend-item a:visited {
     color: inherit;
     text-decoration: none;
   }
@@ -103,30 +115,35 @@ export const styles = `
   /* Tooltip */
   .tooltip {
     position: absolute;
+    z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: 0.125rem;
     background: var(--map-tooltip-background, #1f2937);
     color: var(--map-tooltip-color, #ffffff);
-    font-size: var(--map-tooltip-font-size, 0.8125rem);
-    padding: var(--map-tooltip-padding, 0.25rem 0.5rem);
-    border-radius: var(--map-tooltip-border-radius, 0.25rem);
+    font-size: var(--map-tooltip-font-size, 1rem);
+    line-height: 1.3;
+    padding: var(--map-tooltip-padding, 0.5rem 0.75rem);
+    border-radius: var(--map-tooltip-border-radius, 0.5rem);
     white-space: nowrap;
+    cursor: default;
+    visibility: hidden;
     opacity: 0;
-    pointer-events: none;
     transform: translateY(4px);
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
   }
 
   .tooltip.visible {
+    visibility: visible;
     opacity: 1;
-    pointer-events: auto;
     transform: translateY(0);
   }
 
-  .tooltip a {
+  .tooltip a,
+  .tooltip a:link,
+  .tooltip a:visited {
     color: var(--map-tooltip-link-color, #93c5fd);
     text-decoration: none;
+    cursor: pointer;
   }
 
   .tooltip a:hover {
