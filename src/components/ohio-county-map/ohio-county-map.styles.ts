@@ -90,7 +90,7 @@ export const styles = `
     flex-wrap: wrap;
     justify-content: center;
     gap: 1rem;
-    padding: 0.75rem 0;
+    padding: 0.75rem 0.5rem;
   }
 
   .legend-item {
