@@ -120,10 +120,8 @@ export class OhioCountyMap extends HTMLElement {
       );
 
       path.addEventListener("click", (e: MouseEvent) => {
-        const rect = root.host.getBoundingClientRect();
-        tooltip.style.left = `${e.clientX - rect.left + 12}px`;
-        tooltip.style.top = `${e.clientY - rect.top + 12}px`;
         this.showTooltip(tooltip, name, region);
+        this.positionTooltip(tooltip, e.clientX, e.clientY);
         this.handleSelect(name);
       });
       path.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -230,6 +228,30 @@ export class OhioCountyMap extends HTMLElement {
       }, 300);
     }
 
+  }
+
+  private positionTooltip(tooltip: HTMLDivElement, clientX: number, clientY: number) {
+    const hostRect = this.shadowRoot!.host.getBoundingClientRect();
+    const offset = 12;
+
+    // Read intrinsic dimensions (forces reflow to include content from showTooltip)
+    const tipWidth = tooltip.offsetWidth;
+    const tipHeight = tooltip.offsetHeight;
+
+    // Check if tooltip fits to the right/below in viewport coordinates
+    const fitsRight = clientX + offset + tipWidth <= window.innerWidth;
+    const fitsBelow = clientY + offset + tipHeight <= window.innerHeight;
+
+    const left = fitsRight
+      ? clientX - hostRect.left + offset
+      : Math.max(0, clientX - hostRect.left - tipWidth - offset);
+
+    const top = fitsBelow
+      ? clientY - hostRect.top + offset
+      : Math.max(0, clientY - hostRect.top - tipHeight - offset);
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
   }
 
   private showTooltip(tooltip: HTMLDivElement, county: string, region: Region | undefined) {
